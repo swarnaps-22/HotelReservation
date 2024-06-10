@@ -6,20 +6,39 @@ import java.util.*;
 
 public class ReservationService {
 
-//    public static List<IRoom> listOfRooms = new ArrayList<>();
-    public static List<Reservation> listOfReservationObj = new ArrayList<>();
     public static Map<IRoom ,List<Reservation>> listOfReservations = new HashMap<>();
     static List<IRoom>  allRoomsList;
+    private static ReservationService reservationService = null;
+
+    private ReservationService()
+    {
+
+    }
+   public static ReservationService getReservationServiceInstance()
+   {
+       if(reservationService == null)
+       {
+           return reservationService = new ReservationService();
+       }
+       return reservationService;
+   }
 
 
     public void addRoom(IRoom room)
     {
         //Adds room_obj as key with value as empty list indicating room is available.
 
+//            listOfReservations.computeIfAbsent(room,k->listOfReservations.put(room,new ArrayList<>()));
 
-        listOfReservations.put(room,listOfReservationObj);
-
-
+        if(listOfReservations.containsKey(room) == false)
+        {
+            listOfReservations.put(room,new ArrayList<>());
+            System.out.println(" Rooms added  : " +room.getRoomNumber() );
+        }
+        else
+        {
+            System.out.println("Duplicate rooms cannot be added: "+ room.getRoomNumber());
+        }
 
     }
     public List<IRoom> getAllRooms()
@@ -37,7 +56,6 @@ public class ReservationService {
     public IRoom getRoomWithId(String roomId)
     {
         //Checks for Roomnumber in list of Reservations and returns room object.
-
         for(Map.Entry<IRoom,List<Reservation>> entry : listOfReservations.entrySet())
         {
             if(entry.getKey().getRoomNumber().equals(roomId))
@@ -45,59 +63,74 @@ public class ReservationService {
                 return entry.getKey();
             }
         }
-//        for(IRoom room :allRoomsList)
-//        {
-//            if(roomId.equals(room.getRoomNumber()));
-//            return room;
-//        }
         return null;
     }
     public Reservation reserveARoom(Customer customer, IRoom room, Date checkInDate , Date checkOutDate)
     {
         //find the room in the key and add the list of reservations as values in the hashmap
-        // If no dates available  return not available
-
-      //  Reservation reservationOfCustomer = null;
+        //check in the list of reservation objects if there are any reservations on same date then add
         Reservation reservationOfCustomer = new Reservation(customer,room,checkInDate,checkOutDate);
-        listOfReservationObj.add(reservationOfCustomer);
-        listOfReservations.put(room,listOfReservationObj);
+        List<Reservation> listOfReservationObj = listOfReservations.get(room);
 
+                        listOfReservationObj.add(reservationOfCustomer);
+                        listOfReservations.put(room,listOfReservationObj);
         return reservationOfCustomer;
     }
-
 
 
     public Collection<IRoom> findRooms(Date checkInDate,Date checkOutDate)
     {
         //Finds the available rooms list based on checIn and checkOut and add to list and return list of roomsAvailable on the dates.
-        List<IRoom> RoomsAvailable = new ArrayList<>();
-        for(Map.Entry<IRoom, List<Reservation>> entry : listOfReservations.entrySet() )
+        List<IRoom> roomsAvailable = new ArrayList<>();
+        if(checkInDate.after(checkOutDate))
         {
-            List<Reservation> reservation = entry.getValue();
-            if(!reservation.isEmpty())
-            {
-                for(Reservation reservationobj : reservation)
-                {
-                    if(reservationobj.getCheckInDate().before(checkOutDate)&& reservationobj.getCheckOutDate().after(checkInDate))
-                    {
-                        System.out.println("Room available");
-                        IRoom room = entry.getKey();
-                        RoomsAvailable.add(room);
-                    }
-
-
-                }
-            }
-            else
-            {
-                RoomsAvailable.add(entry.getKey());
-            }
-
-
+            System.out.println("Check In date invalid: ");
+            return roomsAvailable;
+        }
+        else
+        {
+          roomsAvailable =  roomAvailabilityCheck(checkInDate,checkOutDate);
         }
 
-    return RoomsAvailable;
+        if(roomsAvailable.size() == 0)
+        {
+            Calendar calenderDate = Calendar.getInstance();
+            calenderDate.setTime(checkInDate);
+            calenderDate.add(Calendar.DAY_OF_MONTH,7);
+            checkInDate = calenderDate.getTime();
+            calenderDate.setTime(checkOutDate);
+            calenderDate.add(Calendar.DAY_OF_MONTH,7);
+            checkOutDate = calenderDate.getTime();
+            roomAvailabilityCheck(checkInDate,checkOutDate);
+        }
 
+     return roomsAvailable;
+
+    }
+    public List<IRoom> roomAvailabilityCheck(Date checkInDate,Date checkOutDate)
+    {
+        List<IRoom> roomsAvailable = new ArrayList<>();
+
+        for(Map.Entry<IRoom, List<Reservation>> entry : listOfReservations.entrySet() )
+        {
+            List<Reservation> reservations = entry.getValue();
+            if (!reservations.isEmpty()) {
+                boolean checkAvailability = true;
+                for (Reservation reservation : reservations) {
+                    boolean reservationAvailable = checkOutDate.before(reservation.getCheckInDate()) || checkInDate.after(reservation.getCheckOutDate());
+                    checkAvailability = checkAvailability && reservationAvailable;
+                }
+                if (checkAvailability) {
+                    System.out.println("Room available");
+                    IRoom room = entry.getKey();
+                    roomsAvailable.add(room);
+                }
+
+            } else {
+                roomsAvailable.add(entry.getKey());
+            }
+        }
+        return roomsAvailable;
     }
 
     public Collection<Reservation> getCustomersReservation(Customer customer)
@@ -129,9 +162,9 @@ public class ReservationService {
             List<Reservation> reservationDetails = entry.getValue();
             if(!entry.getValue().isEmpty())
             {
-                for(Reservation reseravtion : reservationDetails)
+                for(Reservation reservation : reservationDetails)
                 {
-                    System.out.println("Reservation details are:"+ reseravtion);
+                    System.out.println("Reservation details are:"+ reservation);
                 }
             }
             else

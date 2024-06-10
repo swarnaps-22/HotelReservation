@@ -9,10 +9,13 @@ import service.ReservationService;
 import java.util.Collection;
 import java.util.List;
 
+
+
+
 public class AdminResource {
 
-    CustomerService customerService = new CustomerService();
-    ReservationService reservationService = new ReservationService();
+    CustomerService customerService = CustomerService.getCustomerServiceInstance();
+    ReservationService reservationService = ReservationService.getReservationServiceInstance();
     public Customer getCustomer(String email)
     {
         return customerService.getCustomer(email);
@@ -25,7 +28,8 @@ public class AdminResource {
         {
             if(room != null)
             {
-                reservationService.addRoom(room);
+                    reservationService.addRoom(room);
+
             }
 
         }

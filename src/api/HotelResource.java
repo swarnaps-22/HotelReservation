@@ -11,8 +11,8 @@ import java.util.Date;
 
 public class HotelResource {
 
-    private  CustomerService customerService = new CustomerService();
-    private ReservationService reservationService = new ReservationService();
+   ReservationService reservationService = ReservationService.getReservationServiceInstance();
+   CustomerService customerService = CustomerService.getCustomerServiceInstance();
 
     public Customer getCustomer(String email)
     {
@@ -34,8 +34,9 @@ public class HotelResource {
 
     public Reservation bookARoom(String customerEmail, IRoom room, Date checkInDate, Date checkOutDate)
     {
-        Customer customer = customerService.getCustomer(customerEmail);
-        return reservationService.reserveARoom(customer,room,checkInDate,checkOutDate);
+         Customer customer = customerService.getCustomer(customerEmail);
+
+         return reservationService.reserveARoom(customer,room,checkInDate,checkOutDate);
 
     }
 
