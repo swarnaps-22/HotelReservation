@@ -123,7 +123,8 @@ public class MainMenu
         Date checkOut = parseCheckOutDate();
        Collection<IRoom> roomList = hotelResource.findARoom(checkIn, checkOut);
 
-           System.out.println(roomList);
+        System.out.println(roomList);
+        System.out.println("checkIn  "+checkIn +" "+ "checkOut "+checkOut);
 
        System.out.println("Enter the room you want to select: ");
        String roomNum = scanner.next();
@@ -146,7 +147,9 @@ public class MainMenu
                        System.out.println("customer account doesnt exist please create customer account :");
                        return;
                    }
+
                    IRoom roomToReserve = hotelResource.getRoom(roomNum);
+
                    Reservation reservationObj = hotelResource.bookARoom(email,roomToReserve,checkIn,checkOut);
                    System.out.println("Your room has been reserved: "+ reservationObj);
                }

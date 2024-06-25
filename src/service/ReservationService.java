@@ -81,57 +81,77 @@ public class ReservationService {
     public Collection<IRoom> findRooms(Date checkInDate,Date checkOutDate)
     {
         //Finds the available rooms list based on checIn and checkOut and add to list and return list of roomsAvailable on the dates.
+//
         List<IRoom> roomsAvailable = new ArrayList<>();
         if(checkInDate.after(checkOutDate))
         {
             System.out.println("Check In date invalid: ");
             return roomsAvailable;
         }
+
         else
         {
           roomsAvailable =  roomAvailabilityCheck(checkInDate,checkOutDate);
         }
 
-        if(roomsAvailable.size() == 0)
+        if(roomsAvailable.isEmpty())
         {
+            System.out.println("No rooms on "+ checkInDate+" "+ checkOutDate+" will find alternate dates: ");
             Calendar calenderDate = Calendar.getInstance();
             calenderDate.setTime(checkInDate);
             calenderDate.add(Calendar.DAY_OF_MONTH,7);
-            checkInDate = calenderDate.getTime();
+            checkInDate.setTime(calenderDate.getTimeInMillis());
+
             calenderDate.setTime(checkOutDate);
             calenderDate.add(Calendar.DAY_OF_MONTH,7);
-            checkOutDate = calenderDate.getTime();
-            roomAvailabilityCheck(checkInDate,checkOutDate);
+            checkOutDate.setTime(calenderDate.getTimeInMillis());
+            roomsAvailable = roomAvailabilityCheck(checkInDate,checkOutDate);
+
+            if(roomsAvailable.size() == 0)
+            {
+                System.out.println("No rooms on alternate dates available: "+ checkInDate + " "+ checkOutDate);
+            }
+
+
         }
 
      return roomsAvailable;
 
     }
+
+
     public List<IRoom> roomAvailabilityCheck(Date checkInDate,Date checkOutDate)
     {
         List<IRoom> roomsAvailable = new ArrayList<>();
 
         for(Map.Entry<IRoom, List<Reservation>> entry : listOfReservations.entrySet() )
         {
+
             List<Reservation> reservations = entry.getValue();
-            if (!reservations.isEmpty()) {
+            if (!reservations.isEmpty())
+            {
                 boolean checkAvailability = true;
-                for (Reservation reservation : reservations) {
+                for (Reservation reservation : reservations)
+                {
                     boolean reservationAvailable = checkOutDate.before(reservation.getCheckInDate()) || checkInDate.after(reservation.getCheckOutDate());
                     checkAvailability = checkAvailability && reservationAvailable;
                 }
-                if (checkAvailability) {
-                    System.out.println("Room available");
+                if (checkAvailability)
+                {
+                    System.out.println("Room available on: "+ checkInDate+ " "+ checkOutDate);
                     IRoom room = entry.getKey();
                     roomsAvailable.add(room);
                 }
 
-            } else {
+            }
+            else
+            {
                 roomsAvailable.add(entry.getKey());
             }
         }
         return roomsAvailable;
     }
+
 
     public Collection<Reservation> getCustomersReservation(Customer customer)
     {

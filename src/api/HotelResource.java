@@ -51,4 +51,5 @@ public class HotelResource {
         return reservationService.findRooms(checkIn,checkOut);
     }
 
+
 }
